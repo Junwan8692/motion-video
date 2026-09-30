@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <title>02-hook</title>
+    <!--
+      Frame 2 — 02-hook (track 13.026 – 25.821, frame-local = track − 13.026, 12.795 s)
+      g1 [0.000, 5.132)  one giant word per hit: 한글날엔 0.395 · accent 2.090 · 역시 2.531 (HL pair behind) · 사극 4.226
+                         the ㅡ of 극 primes on the 4.598 riser and stretches on the SURGE 5.086
+      g2 [5.132, 7.686)  bar sweeps the lineup in while the view pans L→R · shake 6.038 · settle into g3 from 7.036
+      g3 [7.686, 12.795] 스물여덟 자에 새긴 7.686 · 연모와 칼끝 10.240 · LOW hold · 12.144 primes the cut
+      Legibility: every figure sits BEHIND the type; big type carries a sun keyline so no figure pixel touches a stroke.
+    -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "Pretendard";
+          font-style: normal;
+          font-weight: 900;
+          font-display: block;
+          src: url("assets/fonts/pretendard/Pretendard-Black.woff2") format("woff2");
+        }
+        @font-face {
+          font-family: "Pretendard";
+          font-style: normal;
+          font-weight: 700;
+          font-display: block;
+          src: url("assets/fonts/pretendard/Pretendard-Bold.woff2") format("woff2");
+        }
+
+        #stage {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          background: #f1ee2e;
+          container-type: inline-size;
+          --sun: #f1ee2e;
+          --ink: #1b2566;
+          --rgb: 6px;
+          font-family: "Pretendard", sans-serif;
+        }
+
+        /* ground: sun + halftone (sketch .bg-sun.dots) */
+        #f02-ground {
+          position: absolute;
+          inset: 0;
+          background: var(--sun);
+        }
+        #f02-ground::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(circle, rgba(27, 37, 102, 0.17) 0.11cqw, transparent 0.14cqw);
+          background-size: 0.8cqw 0.8cqw;
+        }
+
+        .grp,
+        .cam,
+        .sg {
+          position: absolute;
+          inset: 0;
+        }
+
+        /* character hooks: wrapper carries layout + motion, the <img> carries only the treat-* hook */
+        .fig {
+          position: absolute;
+        }
+        .fig img {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
+
+        /* display type */
+        .w {
+          position: absolute;
+          font-weight: 900;
+          line-height: 0.86;
+          white-space: nowrap;
+          color: var(--ink);
+        }
+        /* sun keyline behind the ink glyphs (3×3 dilation) — figures behind never touch a stroke */
+        .kl {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          filter: drop-shadow(0.42cqw 0 0 #f1ee2e) drop-shadow(-0.42cqw 0 0 #f1ee2e)
+            drop-shadow(0 0.42cqw 0 #f1ee2e) drop-shadow(0 -0.42cqw 0 #f1ee2e);
+        }
+        .blk {
+          position: absolute;
+          left: 0;
+          top: 0;
+        }
+        /* room for glyph overhang + fringe inside the mask box; net layout unchanged */
+        .pad {
+          padding: 0.08em calc(0.1em + 1.2cqw) 0.06em 1.4cqw;
+          margin: -0.08em calc(-0.1em - 1.2cqw) -0.06em -1.4cqw;
+        }
+        .k {
+          color: var(--ink);
+          text-shadow:
+            calc(var(--rgb) * -1) 0 0 rgba(230, 40, 60, 0.55),
+            var(--rgb) 0 0 rgba(0, 200, 230, 0.45);
+        }
+        /* grunge: texture-mask-text masks (concrete ∪ rock → sparse print wear) */
+        .tex {
+          -webkit-mask-image: url("assets/texture-mask-text/masks/concrete.png"),
+            url("assets/texture-mask-text/masks/rock.png");
+          mask-image: url("assets/texture-mask-text/masks/concrete.png"),
+            url("assets/texture-mask-text/masks/rock.png");
+          -webkit-mask-size: 88cqw 88cqw, 61cqw 61cqw;
+          mask-size: 88cqw 88cqw, 61cqw 61cqw;
+          -webkit-mask-position: 0 0, 17cqw 11cqw;
+          mask-position: 0 0, 17cqw 11cqw;
+          -webkit-mask-repeat: repeat;
+          mask-repeat: repeat;
+          mask-mode: luminance;
+          mask-composite: add;
+        }
+        .sy {
+          display: inline-block;
+        }
+        .run {
+          position: absolute;
+          left: 0;
+          top: 0;
+        }
+
+        /* g1 words */
+        #f02-g1-hangul {
+          left: 4cqw;
+          top: 17.8cqw;
+          width: 90cqw;
+          height: 20.6cqw;
+          font-size: 24cqw;
+          letter-spacing: -0.06em;
+        }
+        /* sketch frame-02-g1: left 4, top 6.5, 43cqw, -.07em */
+        #f02-g1-yeoksi {
+          left: 4cqw;
+          top: 6.5cqw;
+          width: 80cqw;
+          height: 37cqw;
+          font-size: 43cqw;
+          letter-spacing: -0.07em;
+        }
+        #f02-g1-hl {
+          left: 27.5cqw;
+          top: 9cqw;
+          width: 35.093cqw;
+          height: 44cqw;
+        }
+
+        /* 사극 + the ㅡ bar: 극 pinned at 41cqw, 사 right-aligned to it (natural pair spacing) */
+        .sageuk {
+          left: 0;
+          top: 5cqw;
+          width: 100cqw;
+          height: 34.4cqw;
+          font-size: 40cqw;
+          letter-spacing: -0.07em;
+        }
+        .sageuk .sa {
+          left: auto;
+          right: 59cqw;
+        }
+        .sageuk .gk {
+          left: 41cqw;
+        }
+        /* ㅡ of 극: top = 5 + .335×40 = 18.4cqw, thickness .12×40 = 4.8cqw; starts inside the stroke at 41 + 28 */
+        .bar {
+          position: absolute;
+          left: 69cqw;
+          top: 13.4cqw;
+          width: 95cqw;
+          height: 4.8cqw;
+          background: var(--ink);
+        }
+
+        /* g2 lineup (sketch frame-02-g2) */
+        #f02-g2-hl {
+          left: 36cqw;
+          top: 0.5cqw;
+          width: 24.725cqw;
+          height: 31cqw;
+        }
+        #f02-g2-m {
+          left: 82cqw;
+          top: 1cqw;
+          width: 19.958cqw;
+          height: 27cqw;
+        }
+        #f02-g2-bl {
+          left: 57cqw;
+          top: 9cqw;
+          width: 41.711cqw;
+          height: 46cqw;
+        }
+
+        /* g3 lineup + bar + copy (sketch frame-02-g3) */
+        #f02-g3-hl {
+          left: 6cqw;
+          top: 0.8cqw;
+          width: 16.35cqw;
+          height: 20.5cqw;
+        }
+        #f02-g3-hl2 {
+          left: 30cqw;
+          top: 0.8cqw;
+          width: 10.979cqw;
+          height: 20.5cqw;
+        }
+        #f02-g3-bl {
+          left: 48cqw;
+          top: 0.8cqw;
+          width: 18.589cqw;
+          height: 20.5cqw;
+        }
+        #f02-g3-m {
+          left: 74cqw;
+          top: 1.3cqw;
+          width: 14.784cqw;
+          height: 20cqw;
+        }
+        #f02-g3-bar {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 16.5cqw;
+          height: 6.4cqw;
+          background: var(--ink);
+        }
+        #f02-g3-clip {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 16.5cqw;
+          height: 6.4cqw;
+          overflow: hidden;
+        }
+        #f02-g3-copy1 {
+          position: absolute;
+          left: 5cqw;
+          top: 1.7cqw;
+          margin: 0;
+          font-weight: 700;
+          font-size: 3.6cqw;
+          line-height: 0.86;
+          letter-spacing: -0.02em;
+          color: var(--sun);
+          white-space: nowrap;
+        }
+        #f02-g3-copy1 .ch {
+          display: inline-block;
+        }
+        #f02-g3-yeonmo {
+          left: 4.2cqw;
+          top: 31cqw;
+          width: 78cqw;
+          height: 13.4cqw;
+          font-size: 15.5cqw;
+          letter-spacing: -0.06em;
+        }
+
+        /* grain (grain-overlay texture, desaturated; stepped by the timeline, no CSS animation) */
+        #f02-grain {
+          position: absolute;
+          left: -12%;
+          top: -12%;
+          width: 124%;
+          height: 124%;
+          pointer-events: none;
+          opacity: 0.16;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+          background-size: 256px 256px;
+        }
+      </style>
+
+      <div data-hf-id="hf-xbot" id="stage" data-composition-id="02-hook" data-width="1920" data-height="1080" data-duration="5.7577">
+        <div data-hf-id="hf-7wyd" id="f02-ground"></div>
+
+        <!-- g1 · 13.026–18.158 · one giant word per hit -->
+        <div data-hf-id="hf-6upa" class="grp" id="f02-g1">
+          <div data-hf-id="hf-2sgc" class="cam" id="f02-g1-cam">
+            <div data-hf-id="hf-rqu9" class="fig" id="f02-g1-hl" data-layout-allow-overflow="">
+              <img data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:0,&quot;contrast&quot;:0.15,&quot;highlights&quot;:0,&quot;shadows&quot;:0,&quot;whites&quot;:0,&quot;blacks&quot;:0,&quot;temperature&quot;:0,&quot;tint&quot;:0,&quot;vibrance&quot;:0,&quot;saturation&quot;:-1},&quot;details&quot;:{&quot;vignette&quot;:0,&quot;vignetteMidpoint&quot;:0.5,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.65,&quot;grain&quot;:0.2,&quot;grainSize&quot;:0.25,&quot;grainRoughness&quot;:0.5},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0.2,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" data-hf-id="hf-so8y" id="f02-g1-hlpair" class="treat-bw" src="assets/characters/HL-pair.png" alt="HL pair">
+            </div>
+            <div data-hf-id="hf-ppgi" class="w" id="f02-g1-hangul">
+              <div data-hf-id="hf-7xo2" class="blk pad k tex">한글날엔</div>
+            </div>
+            <div data-hf-id="hf-o0wh" class="w" id="f02-g1-yeoksi">
+              <div data-hf-id="hf-lqb9" class="kl">
+                <div data-hf-id="hf-vj7f" class="blk pad k tex">역시</div>
+              </div>
+            </div>
+            <div data-hf-id="hf-mpgz" class="sg" id="f02-g1-sg" data-layout-allow-overflow="">
+              <div data-hf-id="hf-poff" class="w sageuk" id="f02-g1-sageuk">
+                <div data-hf-id="hf-h961" class="kl">
+                  <div data-hf-id="hf-kbpy" class="blk pad k tex sa" id="f02-g1-sa">사</div>
+                  <div data-hf-id="hf-hjrl" class="blk pad k tex gk" id="f02-g1-gk">극</div>
+                </div>
+                <div data-hf-id="hf-ezoc" class="bar" id="f02-g1-bar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- g2 · 18.158–20.712 · the ㅡ of 극 becomes the bar, lineup pans in -->
+        <div data-hf-id="hf-2wl9" class="grp" id="f02-g2">
+          <div data-hf-id="hf-t83r" class="cam" id="f02-g2-drift">
+            <div data-hf-id="hf-ievj" class="cam" id="f02-g2-cam">
+              <div data-hf-id="hf-6ofc" class="fig" id="f02-g2-hl" data-layout-allow-overflow="">
+                <img data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:0,&quot;contrast&quot;:0.15,&quot;highlights&quot;:0,&quot;shadows&quot;:0,&quot;whites&quot;:0,&quot;blacks&quot;:0,&quot;temperature&quot;:0,&quot;tint&quot;:0,&quot;vibrance&quot;:0,&quot;saturation&quot;:-1},&quot;details&quot;:{&quot;vignette&quot;:0,&quot;vignetteMidpoint&quot;:0.5,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.65,&quot;grain&quot;:0.2,&quot;grainSize&quot;:0.25,&quot;grainRoughness&quot;:0.5},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0.2,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" data-hf-id="hf-gomn" id="f02-g2-hlpair" class="treat-bw" src="assets/characters/HL-pair.png" alt="HL pair">
+              </div>
+              <div data-hf-id="hf-qs49" class="fig" id="f02-g2-m" data-layout-allow-overflow="">
+                <img data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:0,&quot;contrast&quot;:0.15,&quot;highlights&quot;:0,&quot;shadows&quot;:0,&quot;whites&quot;:0,&quot;blacks&quot;:0,&quot;temperature&quot;:0,&quot;tint&quot;:0,&quot;vibrance&quot;:0,&quot;saturation&quot;:-1},&quot;details&quot;:{&quot;vignette&quot;:0,&quot;vignetteMidpoint&quot;:0.5,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.65,&quot;grain&quot;:0.2,&quot;grainSize&quot;:0.25,&quot;grainRoughness&quot;:0.5},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0.2,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" data-hf-id="hf-1a4b" id="f02-g2-mgroup" class="treat-bw" src="assets/characters/M-group.png" alt="M group">
+              </div>
+              <div data-hf-id="hf-qxgy" class="sg" id="f02-g2-sg" data-layout-allow-overflow="">
+                <div data-hf-id="hf-rjde" class="w sageuk" id="f02-g2-sageuk">
+                  <div data-hf-id="hf-ig34" class="kl">
+                    <div data-hf-id="hf-lwlp" class="blk pad k tex sa" id="f02-g2-sa">사</div>
+                    <div data-hf-id="hf-bmu6" class="blk pad k tex gk" id="f02-g2-gk">극</div>
+                  </div>
+                  <div data-hf-id="hf-jv2n" class="bar" id="f02-g2-bar"></div>
+                </div>
+              </div>
+              <div data-hf-id="hf-09zy" class="fig" id="f02-g2-bl" data-layout-allow-overflow="">
+                <img data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:0,&quot;contrast&quot;:0.15,&quot;highlights&quot;:0,&quot;shadows&quot;:0,&quot;whites&quot;:0,&quot;blacks&quot;:0,&quot;temperature&quot;:0,&quot;tint&quot;:0,&quot;vibrance&quot;:0,&quot;saturation&quot;:-1},&quot;details&quot;:{&quot;vignette&quot;:0,&quot;vignetteMidpoint&quot;:0.5,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.65,&quot;grain&quot;:0.2,&quot;grainSize&quot;:0.25,&quot;grainRoughness&quot;:0.5},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0.2,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" data-hf-id="hf-uwcx" id="f02-g2-blpair" class="treat-bw" src="assets/characters/BL-pair.png" alt="BL pair">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- g3 · 20.712–25.821 · held lineup, two-line statement -->
+        <div data-hf-id="hf-24xg" class="grp" id="f02-g3">
+          <div data-hf-id="hf-99py" class="cam" id="f02-g3-cam">
+            <div data-hf-id="hf-x9xo" class="cam" id="f02-g3-line" data-layout-allow-overflow="">
+              <div data-hf-id="hf-4bgw" class="fig" id="f02-g3-hl">
+                <img data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:0,&quot;contrast&quot;:0.15,&quot;highlights&quot;:0,&quot;shadows&quot;:0,&quot;whites&quot;:0,&quot;blacks&quot;:0,&quot;temperature&quot;:0,&quot;tint&quot;:0,&quot;vibrance&quot;:0,&quot;saturation&quot;:-1},&quot;details&quot;:{&quot;vignette&quot;:0,&quot;vignetteMidpoint&quot;:0.5,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.65,&quot;grain&quot;:0.2,&quot;grainSize&quot;:0.25,&quot;grainRoughness&quot;:0.5},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0.2,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" data-hf-id="hf-o340" id="f02-g3-hlpair" class="treat-bw" src="assets/characters/HL-pair.png" alt="HL pair">
+              </div>
+              <div data-hf-id="hf-i15e" class="fig" id="f02-g3-hl2">
+                <img data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:0,&quot;contrast&quot;:0.15,&quot;highlights&quot;:0,&quot;shadows&quot;:0,&quot;whites&quot;:0,&quot;blacks&quot;:0,&quot;temperature&quot;:0,&quot;tint&quot;:0,&quot;vibrance&quot;:0,&quot;saturation&quot;:-1},&quot;details&quot;:{&quot;vignette&quot;:0,&quot;vignetteMidpoint&quot;:0.5,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.65,&quot;grain&quot;:0.2,&quot;grainSize&quot;:0.25,&quot;grainRoughness&quot;:0.5},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0.2,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" data-hf-id="hf-f7i5" id="f02-g3-hlpair2" class="treat-bw" src="assets/characters/HL-pair-2.png" alt="HL pair 2">
+              </div>
+              <div data-hf-id="hf-gxcm" class="fig" id="f02-g3-bl">
+                <img data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:0,&quot;contrast&quot;:0.15,&quot;highlights&quot;:0,&quot;shadows&quot;:0,&quot;whites&quot;:0,&quot;blacks&quot;:0,&quot;temperature&quot;:0,&quot;tint&quot;:0,&quot;vibrance&quot;:0,&quot;saturation&quot;:-1},&quot;details&quot;:{&quot;vignette&quot;:0,&quot;vignetteMidpoint&quot;:0.5,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.65,&quot;grain&quot;:0.2,&quot;grainSize&quot;:0.25,&quot;grainRoughness&quot;:0.5},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0.2,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" data-hf-id="hf-yd86" id="f02-g3-blpair" class="treat-bw" src="assets/characters/BL-pair.png" alt="BL pair">
+              </div>
+              <div data-hf-id="hf-mmw1" class="fig" id="f02-g3-m">
+                <img data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:0,&quot;contrast&quot;:0.15,&quot;highlights&quot;:0,&quot;shadows&quot;:0,&quot;whites&quot;:0,&quot;blacks&quot;:0,&quot;temperature&quot;:0,&quot;tint&quot;:0,&quot;vibrance&quot;:0,&quot;saturation&quot;:-1},&quot;details&quot;:{&quot;vignette&quot;:0,&quot;vignetteMidpoint&quot;:0.5,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.65,&quot;grain&quot;:0.2,&quot;grainSize&quot;:0.25,&quot;grainRoughness&quot;:0.5},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0.2,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" data-hf-id="hf-6ijg" id="f02-g3-mgroup" class="treat-bw" src="assets/characters/M-group.png" alt="M group">
+              </div>
+            </div>
+            <div data-hf-id="hf-giav" id="f02-g3-bar" data-layout-allow-overflow=""></div>
+            <div data-hf-id="hf-qlfe" id="f02-g3-clip" data-layout-allow-overflow="">
+              <p data-hf-id="hf-a0xg" id="f02-g3-copy1"><span data-hf-id="hf-hfs0" class="ch">스</span><span data-hf-id="hf-70q0" class="ch">물</span><span data-hf-id="hf-1hbs" class="ch">여</span><span data-hf-id="hf-ucch" class="ch">덟</span> <span data-hf-id="hf-fkn0" class="ch">자</span><span data-hf-id="hf-9fgc" class="ch">에</span> <span data-hf-id="hf-j8pw" class="ch">새</span><span data-hf-id="hf-zrgw" class="ch">긴</span></p>
+            </div>
+            <div style="color: rgb(255, 72, 221)" data-hf-id="hf-a5h2" class="w" id="f02-g3-yeonmo">
+              <div data-hf-id="hf-nt9w" class="run k"><span data-hf-id="hf-og8r" class="sy pad tex">연</span><span data-hf-id="hf-o183" class="sy pad tex">모</span><span data-hf-id="hf-x2y3" class="sy pad tex">와</span> <span data-hf-id="hf-xwmn" class="sy pad tex">칼</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-ayqe" id="f02-grain" data-layout-ignore=""></div>
+      </div>
+
+      <script>
+        (function () {
+          var ID = "02-hook";
+          var host = document.querySelector('[data-composition-id="' + ID + '"]');
+          function $(id) {
+            var el = host && host.querySelector ? host.querySelector("#" + id) : null;
+            if (!el && document.querySelector) el = document.querySelector("#" + id);
+            if (!el && document.getElementById) el = document.getElementById(id);
+            return el;
+          }
+          function $$(sel) {
+            return Array.prototype.slice.call((host || document).querySelectorAll(sel));
+          }
+
+          var U = 19.2; // px per cqw on the 1920 canvas
+          function px(c) {
+            return Math.round(c * U * 100) / 100;
+          }
+
+          // frame-local anchors (track − 13.026)
+          var A = {
+            hangul: 0.395, // 13.421 snare
+            accent: 2.09, // 15.116 syncopated snare (real hit)
+            yeoksi: 2.531, // 15.557 snare
+            tick: 3.158, // 16.184 snare
+            sageuk: 4.226, // 17.252 snare
+            riser: 4.598, // 17.624 perc riser
+            surge: 5.086, // 18.112 SURGE
+            cut12: 5.132, // 18.158 g1 → g2
+            shake: 6.038, // 19.064 snare
+            perc: 6.804, // 19.830 perc
+            settle: 7.036, // 20.062
+            cut23: 7.686, // 20.712 downbeat, g2 → g3 (no visible cut)
+            yeonmo: 10.24, // 23.266 downbeat
+            prime: 12.144, // 25.170
+            end: 12.795 // 25.821
+          };
+
+          var g1 = $("f02-g1"),
+            g2 = $("f02-g2"),
+            g3 = $("f02-g3");
+          var cam1 = $("f02-g1-cam"),
+            hl1 = $("f02-g1-hl");
+          var hangul = $("f02-g1-hangul"),
+            yeoksi = $("f02-g1-yeoksi");
+          var S1 = { w: $("f02-g1-sageuk"), sg: $("f02-g1-sg"), sa: $("f02-g1-sa"), bar: $("f02-g1-bar") };
+          var S2 = { w: $("f02-g2-sageuk"), sg: $("f02-g2-sg"), sa: $("f02-g2-sa"), bar: $("f02-g2-bar") };
+          var drift2 = $("f02-g2-drift"),
+            cam2 = $("f02-g2-cam");
+          var hl2 = $("f02-g2-hl"),
+            m2 = $("f02-g2-m"),
+            bl2 = $("f02-g2-bl");
+          var cam3 = $("f02-g3-cam"),
+            line3 = $("f02-g3-line"),
+            hlTwo = $("f02-g3-hl2");
+          var copyChars = $$("#f02-g3-copy1 .ch");
+          var yeonmo = $("f02-g3-yeonmo"),
+            yeonSy = $$("#f02-g3-yeonmo .sy");
+          var grain = $("f02-grain");
+
+          // ---- t = 0 state (outside the timeline, so a seek back to 0 lands here) ----
+          gsap.set(g1, { autoAlpha: 1 });
+          gsap.set([g2, g3], { autoAlpha: 0 });
+          gsap.set([hangul, yeoksi, S1.w, S2.w, hl1], { autoAlpha: 0 });
+          gsap.set([hangul, yeoksi, S1.w, S2.w, yeonmo], { "--rgb": "6px" });
+          gsap.set([hangul, yeoksi], { scale: 1, transformOrigin: "50% 50%" });
+          gsap.set([S1.w, S2.w], { scale: 1, transformOrigin: "41% 50%" });
+          gsap.set([S1.sg, S2.sg], { x: 0, y: 0, scale: 1, transformOrigin: "0% 0%" });
+          gsap.set([S1.sa, S2.sa], { x: 0 });
+          gsap.set([S1.bar, S2.bar], { scaleX: 0, transformOrigin: "0% 50%" });
+          gsap.set(hl1, { y: px(16) });
+          gsap.set([cam1, cam2, drift2, line3], { x: 0, y: 0 });
+          gsap.set(hl2, { x: px(66), y: 0, scale: 1, transformOrigin: "0% 0%" });
+          gsap.set(m2, { x: px(40), y: 0, scale: 1, transformOrigin: "0% 0%" });
+          gsap.set(bl2, { x: px(80), y: 0, scale: 1, transformOrigin: "0% 0%" });
+          gsap.set(hlTwo, { scale: 1, transformOrigin: "50% 100%" });
+          gsap.set(copyChars, { y: px(4.6) });
+          gsap.set(yeonSy, { autoAlpha: 0, y: 0, scale: 1, transformOrigin: "50% 60%" });
+          gsap.set(cam3, { scale: 1, transformOrigin: "50% 50%" });
+
+          var tl = gsap.timeline({ paused: true, defaults: { immediateRender: false } });
+
+          function ft(el, from, to, t) {
+            to.immediateRender = false;
+            tl.fromTo(el, from, to, t);
+          }
+          function set(el, v, t) {
+            tl.set(el, v, t);
+          }
+          // screen-shake: 0ms steps, then home
+          function shake(el, t, amps) {
+            for (var i = 0; i < amps.length; i++) {
+              set(el, { x: px(amps[i]), y: px(amps[(i + 1) % amps.length] * 0.5) }, t + i * 0.033);
+            }
+            set(el, { x: 0, y: 0 }, t + amps.length * 0.033);
+          }
+          // chromatic-split: stepped RGB fringe offsets (px), then rest
+          function chroma(el, t, seq, rest) {
+            for (var i = 0; i < seq.length; i++) {
+              set(el, { "--rgb": seq[i] + "px" }, t + i * 0.045);
+            }
+            set(el, { "--rgb": (rest || 6) + "px" }, t + seq.length * 0.045);
+          }
+
+          // ---- group swaps (0ms) ----
+          set(g1, { autoAlpha: 0 }, A.cut12);
+          set(g2, { autoAlpha: 1 }, A.cut12);
+          set(g2, { autoAlpha: 0 }, A.cut23);
+          set(g3, { autoAlpha: 1 }, A.cut23);
+
+          // ---- g1 ----
+          // 13.421 한글날엔 slams full width
+          set(hangul, { autoAlpha: 1 }, A.hangul);
+          ft(hangul, { scale: 1.08 }, { scale: 1, duration: 0.34, ease: "expo.out" }, A.hangul);
+          chroma(hangul, A.hangul, [22, 12, 18, 9]);
+          shake(cam1, A.hangul, [1.1, -0.9, 0.7, -0.55, 0.4, -0.25, 0.14, -0.06]);
+
+          // 15.116 syncopated accent: fringe tear + pop + short shake
+          chroma(hangul, A.accent, [20, 8, 15, 7]);
+          ft(hangul, { scale: 1 }, { scale: 1.035, duration: 0.05, ease: "power2.out" }, A.accent);
+          ft(hangul, { scale: 1.035 }, { scale: 1, duration: 0.3, ease: "power3.out" }, A.accent + 0.05);
+          shake(cam1, A.accent, [0.7, -0.55, 0.4, -0.25, 0.1]);
+
+          // 15.557 역시 — HL pair rises BEHIND the type into the 역|시 gap (vertical path, never across 시)
+          set(hangul, { autoAlpha: 0 }, A.yeoksi);
+          set([yeoksi, hl1], { autoAlpha: 1 }, A.yeoksi);
+          ft(yeoksi, { scale: 1.06 }, { scale: 1, duration: 0.32, ease: "expo.out" }, A.yeoksi);
+          chroma(yeoksi, A.yeoksi, [22, 11, 17, 8]);
+          ft(hl1, { y: px(16) }, { y: 0, duration: 0.55, ease: "power3.out" }, A.yeoksi);
+          ft(hl1, { y: 0 }, { y: px(-0.8), duration: 1.1, ease: "sine.inOut" }, A.yeoksi + 0.56);
+          ft(yeoksi, { scale: 1 }, { scale: 1.016, duration: 1.3, ease: "sine.inOut" }, A.yeoksi + 0.36);
+          chroma(yeoksi, A.tick, [14, 8]);
+
+          // 17.252 사극
+          set([yeoksi, hl1], { autoAlpha: 0 }, A.sageuk);
+          shake(cam1, A.sageuk, [1.0, -0.8, 0.6, -0.45, 0.28, -0.12]);
+
+          // 사극 → ㅡ primes (17.624) → SURGE 18.112: bar stretches L→R while the view pans.
+          // Built identically on the g1 copy and the g2 copy so the 18.158 swap is seamless.
+          function strokeSeq(S) {
+            set(S.w, { autoAlpha: 1 }, A.sageuk);
+            ft(S.w, { scale: 1.08 }, { scale: 1, duration: 0.3, ease: "expo.out" }, A.sageuk);
+            chroma(S.w, A.sageuk, [22, 11, 17, 8]);
+            set(S.bar, { scaleX: 0.1 }, A.riser);
+            ft(S.bar, { scaleX: 0.1 }, { scaleX: 0.2, duration: A.surge - A.riser, ease: "sine.in" }, A.riser);
+            chroma(S.w, A.riser, [12, 8]);
+            ft(S.bar, { scaleX: 0.2 }, { scaleX: 1, duration: 0.6, ease: "power2.out" }, A.surge);
+            ft(S.sg, { x: 0 }, { x: px(-39), duration: 0.95, ease: "power2.inOut" }, A.surge);
+            ft(S.sa, { x: 0 }, { x: px(-14), duration: 0.95, ease: "power2.in" }, A.surge);
+            chroma(S.w, A.surge, [24, 12, 18, 9]);
+          }
+          strokeSeq(S1);
+          strokeSeq(S2);
+
+          // ---- g2 ----
+          // lineup enters from off-screen right with the pan (HL + M behind the bar, BL in front)
+          ft(hl2, { x: px(66) }, { x: 0, duration: 0.82, ease: "power3.out" }, A.cut12);
+          ft(bl2, { x: px(80) }, { x: 0, duration: 0.84, ease: "power3.out" }, A.cut12 + 0.064);
+          ft(m2, { x: px(40) }, { x: 0, duration: 0.76, ease: "power3.out" }, A.cut12 + 0.144);
+
+          // 19.064 short shake
+          shake(cam2, A.shake, [1.0, -0.8, 0.6, -0.45, 0.3, -0.15, 0.06]);
+          chroma(S2.w, A.shake, [22, 10, 16, 8]);
+          ft(drift2, { x: 0 }, { x: px(-0.8), duration: A.settle - 6.036, ease: "sine.inOut" }, 6.036);
+          chroma(S2.w, A.perc, [14, 8]);
+
+          // 20.062 → 20.712 settle: bar thickens to the g3 bar (16.5 / 6.4cqw), 극 exits left,
+          // figures take their g3 lineup geometry (drift −0.8cqw compensated) → the 20.712 swap is invisible
+          var E = { duration: A.cut23 - A.settle, ease: "power3.inOut" };
+          ft(S2.sg, { x: px(-39), y: 0, scale: 1 }, Object.assign({ x: px(-112), y: px(-8.0333), scale: 4 / 3 }, E), A.settle);
+          ft(hl2, { x: 0, y: 0, scale: 1 }, Object.assign({ x: px(-29.2), y: px(0.3), scale: 20.5 / 31 }, E), A.settle);
+          ft(bl2, { x: 0, y: 0, scale: 1 }, Object.assign({ x: px(-8.2), y: px(-8.2), scale: 20.5 / 46 }, E), A.settle);
+          ft(m2, { x: 0, y: 0, scale: 1 }, Object.assign({ x: px(-7.2), y: px(0.3), scale: 20 / 27 }, E), A.settle);
+
+          // ---- g3 ----
+          // 20.712 HL-pair-2 joins the lineup; 스물여덟 자에 새긴 sets into the bar
+          ft(hlTwo, { scale: 1.07 }, { scale: 1, duration: 0.32, ease: "power3.out" }, A.cut23);
+          copyChars.forEach(function (c, i) {
+            ft(c, { y: px(4.6) }, { y: 0, duration: 0.3, ease: "power3.out" }, A.cut23 + i * 0.022);
+          });
+          // slow drift of the lineup (copy stays still)
+          ft(line3, { x: 0 }, { x: px(-2.4), duration: A.end - A.cut23, ease: "sine.inOut" }, A.cut23);
+
+          // 23.266 연모와 칼끝 lands lower left, syllable by syllable; LOW stretch holds it
+          yeonSy.forEach(function (s, i) {
+            var t = A.yeonmo + i * 0.05;
+            set(s, { autoAlpha: 1 }, t);
+            ft(s, { y: px(-4.3), scale: 1.1 }, { y: 0, scale: 1, duration: 0.32, ease: "expo.out" }, t);
+          });
+          chroma(yeonmo, A.yeonmo, [20, 10, 15, 8]);
+
+          // 25.170 primes the cut: push-in accelerating into 25.821 + fringe tension
+          ft(cam3, { scale: 1 }, { scale: 1.035, duration: A.end - A.prime, ease: "power2.in" }, A.prime);
+          chroma(yeonmo, A.prime, [20, 9, 15], 10);
+          set(yeonmo, { "--rgb": "18px" }, A.end - 0.1);
+
+          // ---- grain: seeded 12 fps jitter across the whole frame ----
+          function mulberry32(a) {
+            return function () {
+              a |= 0;
+              a = (a + 0x6d2b79f5) | 0;
+              var t = Math.imul(a ^ (a >>> 15), 1 | a);
+              t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+              return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+          }
+          var rnd = mulberry32(0x2f02);
+          gsap.set(grain, { x: px((rnd() - 0.5) * 10), y: px((rnd() - 0.5) * 6) });
+          for (var k = 1; k / 12 < A.end; k++) {
+            set(grain, { x: px((rnd() - 0.5) * 10), y: px((rnd() - 0.5) * 6) }, Math.round((k / 12) * 1000) / 1000);
+          }
+
+          window.__timelines = window.__timelines || {};
+          // fast cut: the 40 s timeline plays 2.2222x inside an outer timeline (user: 40s를 18초로 빠르게)
+          var fast = gsap.timeline({ paused: true });
+          fast.add(tl.paused(false).timeScale(2.222222), 0);
+          window.__timelines[ID] = fast;
+          fast.seek(0);
+        })();
+      </script>
+    </template>
+  </body>
+</html>

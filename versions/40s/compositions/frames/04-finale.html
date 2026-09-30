@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <title>04-finale — 사극 한마당 (track 33.483–40.0)</title>
+    <!--
+      Frame 04-finale · span 33.483–40.000 (6.517s) · pacing beat_cut · canvas 1920×1080
+      Frame-local anchors (local = track − 33.483):
+        0.047  riser 33.530   paper ㅣ bar drops, then sweeps L→R (0.17–0.45) and opens the rippled ink ground + "2026 한글날"
+        0.465  snare 33.948   "사극 한마당" slams: scale punch, haze flash, ground ring, screen shake, RGB split
+        1.277  beat  34.760   covers 1–3 rise in perspective (stagger 0.06)
+        1.904  beat  35.387   covers 4–6 rise in perspective (stagger 0.06)
+        2.554  down  36.037   g1 → g2 (no visible cut; sketch seam "컷 없이 유지"): titles lift 42px, date wipes in L→R
+        2.774                 "예시" tag stamps
+        3.181  beat  36.664   RGB tick
+        3.831  beat  37.314   coin rolls in L→R beside the logo slot
+        4.517  hard stop 38.0 freeze-hold: camera push, ripple drift, grain all stop
+        5.085  down  38.568   logo placeholder #f04-logo stamps (done 5.305)
+        5.305–6.517           held frame, nothing moves
+      Layers: shared base (ground, texture, titles, covers) persists across both groups;
+      #f04-g1 = g1-only effects (0–2.554); #f04-g2 = date / coin / logo (2.554–end).
+    -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "Pretendard";
+          font-weight: 900;
+          font-style: normal;
+          font-display: block;
+          src: url("assets/fonts/pretendard/Pretendard-Black.woff2") format("woff2");
+        }
+        @font-face {
+          font-family: "Pretendard";
+          font-weight: 800;
+          font-style: normal;
+          font-display: block;
+          src: url("assets/fonts/pretendard/Pretendard-ExtraBold.woff2") format("woff2");
+        }
+        @font-face {
+          font-family: "Pretendard";
+          font-weight: 700;
+          font-style: normal;
+          font-display: block;
+          src: url("assets/fonts/pretendard/Pretendard-Bold.woff2") format("woff2");
+        }
+        @font-face {
+          font-family: "Pretendard";
+          font-weight: 600;
+          font-style: normal;
+          font-display: block;
+          src: url("assets/fonts/pretendard/Pretendard-SemiBold.woff2") format("woff2");
+        }
+
+        /* palette (frame.md): sun #F1EE2E · ink #1B2566 · ember #E26B4A · haze #F0DA7C · paper #E9E5DB */
+        #stage {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          font-family: "Pretendard", sans-serif;
+          font-weight: 600;
+        }
+        #stage * {
+          box-sizing: border-box;
+        }
+
+        /* ground fill on a full-bleed child (not the root) */
+        #f04-base {
+          position: absolute;
+          inset: 0;
+          background: #1b2566;
+        }
+
+        /* camera: shake + push; everything that moves with the "lens" */
+        #f04-cam {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+        }
+
+        /* ripple + halftone texture, oversized 48px so the shake never shows an edge.
+           Revealed by the ㅣ wipe through clip-path (same inset() px form at both ends). */
+        #f04-tex {
+          position: absolute;
+          inset: -48px;
+          z-index: 2;
+          clip-path: inset(0px 2016px 0px 0px);
+        }
+        #f04-ripple {
+          position: absolute;
+          inset: 0;
+          /* sketch: circle at 50% 118% of the frame → (1008px, 1322.4px) in this oversized box */
+          background-image: repeating-radial-gradient(
+            circle at 1008px 1322.4px,
+            rgba(233, 229, 219, 0.07) 0 3.072px,
+            transparent 3.072px 24.96px
+          );
+        }
+        #f04-dots {
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(circle, rgba(233, 229, 219, 0.1) 2.112px, transparent 2.688px);
+          background-size: 15.36px 15.36px;
+        }
+
+        /* ---------- g1-only effects ---------- */
+        #f04-g1 {
+          position: absolute;
+          inset: 0;
+          z-index: 3;
+        }
+        #f04-g1-ring {
+          position: absolute;
+          left: -240px;
+          top: 74.4px;
+          width: 2400px;
+          height: 2400px;
+          border-radius: 50%;
+          border: 5px solid #f0da7c;
+          opacity: 0;
+        }
+        #f04-g1-flash {
+          position: absolute;
+          inset: -48px;
+          background: #f0da7c;
+          opacity: 0;
+        }
+        #f04-g1-bar {
+          position: absolute;
+          left: 0;
+          top: -48px;
+          width: 60px;
+          height: 1176px;
+          background: #e9e5db;
+        }
+
+        /* ---------- shared: framed covers in perspective (sketch .row3d / .pf) ---------- */
+        #f04-row {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: -67.2px;
+          height: 403.2px;
+          z-index: 4;
+          display: flex;
+          justify-content: center;
+          align-items: flex-end;
+          gap: 24.96px;
+          perspective: 1056px;
+        }
+        .f04-pf {
+          position: relative;
+          flex: none;
+          width: 220.8px;
+          height: 307.2px;
+          border: 11.52px solid #e26b4a;
+          background: #1b2566;
+        }
+        .f04-pf img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        /* ---------- shared: kicker + title ---------- */
+        #f04-titles {
+          position: absolute;
+          inset: 0;
+          z-index: 5;
+        }
+        #f04-kicker {
+          position: absolute;
+          left: -48px;
+          right: -48px;
+          top: 102.88px; /* text line at 122.88px (6.4cqw); 20px padding keeps glyphs inside the clip */
+          padding: 20px 0;
+          text-align: center;
+          font-weight: 600;
+          font-size: 55.68px;
+          line-height: 0.86;
+          letter-spacing: 0.02em;
+          color: #f0da7c;
+          white-space: nowrap;
+          clip-path: inset(0px 2016px 0px 0px);
+        }
+        #f04-title {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 199.68px; /* 10.4cqw */
+          text-align: center;
+          font-weight: 900;
+          font-size: 259.2px;
+          line-height: 0.86;
+          letter-spacing: -0.05em;
+          white-space: nowrap;
+          visibility: hidden;
+          opacity: 0;
+        }
+        .f04-tw {
+          position: relative;
+          display: inline-block;
+        }
+        .f04-tw span {
+          display: block;
+          white-space: nowrap;
+        }
+        .f04-tw .f04-ghost {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        #f04-title-r {
+          color: rgba(230, 40, 60, 0.55);
+        }
+        #f04-title-c {
+          color: rgba(0, 200, 230, 0.45);
+        }
+        #f04-title-s {
+          position: relative;
+          color: #e9e5db;
+        }
+
+        /* ---------- g2: date, coin, logo ---------- */
+        #f04-g2 {
+          position: absolute;
+          inset: 0;
+          z-index: 6;
+          visibility: hidden;
+          opacity: 0;
+        }
+        #f04-g2-dline {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 410.08px; /* text line at 430.08px (22.4cqw) */
+          display: flex;
+          justify-content: center;
+        }
+        #f04-g2-date {
+          padding: 20px 28px;
+          font-weight: 700;
+          font-size: 80.64px;
+          line-height: 0.86;
+          letter-spacing: -0.01em;
+          color: #f1ee2e;
+          white-space: nowrap;
+          clip-path: inset(0% 100% 0% 0%);
+        }
+        .ex-tag {
+          display: inline-block;
+          font-size: 0.55em;
+          font-weight: 800;
+          letter-spacing: 0;
+          padding: 0.18em 0.45em;
+          margin-left: 0.5em;
+          vertical-align: middle;
+          border: 0.12em solid currentColor;
+          visibility: hidden;
+          opacity: 0;
+        }
+        #f04-logo {
+          position: absolute;
+          left: 787.2px;
+          top: 549.12px;
+          width: 307.2px;
+          height: 88.32px;
+          border: 4.8px solid #e9e5db;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          font-size: 32.64px;
+          line-height: 1;
+          color: #e9e5db;
+          white-space: nowrap;
+          visibility: hidden;
+          opacity: 0;
+        }
+        #f04-g2-coin {
+          position: absolute;
+          left: 1113.6px;
+          top: 558.72px;
+          width: 69.12px;
+          height: 69.12px;
+          display: block;
+          visibility: hidden;
+          opacity: 0;
+        }
+
+        /* ---------- grain (grain-overlay component texture; stepped by the timeline, no CSS animation) ---------- */
+        #f04-grain {
+          position: absolute;
+          inset: 0;
+          z-index: 20;
+          overflow: hidden;
+          pointer-events: none;
+        }
+        #f04-grain-tex {
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+          background-size: 320px 320px;
+          opacity: 0.14;
+        }
+      </style>
+
+      <div data-hf-id="hf-4t1y" id="stage" data-composition-id="04-finale" data-width="1920" data-height="1080" data-duration="6.517">
+        <div data-hf-id="hf-s0p5" id="f04-base"></div>
+
+        <div data-hf-id="hf-5fyv" id="f04-cam">
+          <div data-hf-id="hf-5zg1" id="f04-tex">
+            <div data-hf-id="hf-dmgs" id="f04-ripple"></div>
+            <div data-hf-id="hf-4k5i" id="f04-dots"></div>
+          </div>
+
+          <!-- g1 (33.483–36.037): ㅣ wipe bar, slam flash, ground ring -->
+          <div data-hf-id="hf-e9ma" id="f04-g1">
+            <div data-hf-id="hf-oj9h" id="f04-g1-ring"></div>
+            <div data-hf-id="hf-1d1b" id="f04-g1-flash"></div>
+            <div data-hf-id="hf-srwi" id="f04-g1-bar"></div>
+          </div>
+
+          <!-- shared: six framed official covers, in order, rising in two beats -->
+          <div data-hf-id="hf-86rq" id="f04-row">
+            <div data-hf-id="hf-9egk" class="f04-pf" id="f04-pf-1"><img data-hf-id="hf-bqo1" id="f04-cover-1" src="assets/covers/hajungjeon-tall.jpg" alt=""></div>
+            <div data-hf-id="hf-i2cf" class="f04-pf" id="f04-pf-2"><img data-hf-id="hf-ipov" id="f04-cover-2" src="assets/covers/agony-tall.jpg" alt=""></div>
+            <div data-hf-id="hf-e48e" class="f04-pf" id="f04-pf-3"><img data-hf-id="hf-0705" id="f04-cover-3" src="assets/covers/cloud-tall.jpg" alt=""></div>
+            <div data-hf-id="hf-ozq1" class="f04-pf" id="f04-pf-4"><img data-hf-id="hf-hi55" id="f04-cover-4" src="assets/covers/audum-tall.jpg" alt=""></div>
+            <div data-hf-id="hf-o828" class="f04-pf" id="f04-pf-5"><img data-hf-id="hf-2sd6" id="f04-cover-5" src="assets/covers/yeoksal-tall.jpg" alt=""></div>
+            <div data-hf-id="hf-wvy3" class="f04-pf" id="f04-pf-6"><img data-hf-id="hf-css8" id="f04-cover-6" src="assets/covers/madeye-tall.jpg" alt=""></div>
+          </div>
+
+          <!-- shared: kicker + title (persist into g2, lift 2.2cqw when the date lands) -->
+          <div data-hf-id="hf-51h7" id="f04-titles">
+            <div data-hf-id="hf-rcmr" id="f04-kicker" data-layout-allow-overlap="">2026 한글날</div>
+            <div data-hf-id="hf-vf14" id="f04-title">
+              <div data-hf-id="hf-m0q8" class="f04-tw">
+                <span data-hf-id="hf-4ii0" class="f04-ghost" id="f04-title-r" aria-hidden="true" data-layout-allow-overlap="">사극 한마당</span>
+                <span data-hf-id="hf-vjzd" class="f04-ghost" id="f04-title-c" aria-hidden="true" data-layout-allow-overlap="">사극 한마당</span>
+                <span data-hf-id="hf-5tth" id="f04-title-s">사극 한마당</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- g2 (36.037–40.0): date, coin, logo placeholder, then the held frame -->
+          <div data-hf-id="hf-abi9" id="f04-g2">
+            <div data-hf-id="hf-ygrs" id="f04-g2-dline">
+              <div data-hf-id="hf-4xog" id="f04-g2-date">10.09(금) – 10.11(일)<span data-hf-id="hf-j91k" class="ex-tag" id="f04-g2-tag">예시</span></div>
+            </div>
+            <div data-hf-id="hf-hgu9" id="f04-logo">레진 로고</div>
+            <img data-hf-id="hf-m49n" id="f04-g2-coin" src="assets/props/coin.png" alt="">
+          </div>
+        </div>
+
+        <div data-hf-id="hf-yexy" id="f04-grain" aria-hidden="true"><div data-hf-id="hf-hje7" id="f04-grain-tex"></div></div>
+      </div>
+
+      <script>
+        (function () {
+          var $ = function (id) {
+            return document.getElementById(id);
+          };
+
+          // Frame-local anchor times (local = track − 33.483).
+          var T = {
+            riser: 0.047, // 33.530 perc riser → ㅣ bar drops
+            sweep: 0.17, // bar sweeps L→R, done 0.45
+            slam: 0.465, // 33.948 syncopated snare → title slam
+            row1: 1.277, // 34.760 beat → covers 1–3
+            row2: 1.904, // 35.387 beat → covers 4–6
+            g2: 2.554, // 36.037 downbeat → date lands (g1 → g2)
+            tag: 2.774, // "예시" tag stamp
+            beat: 3.181, // 36.664 beat → RGB tick
+            coin: 3.831, // 37.314 beat → coin rolls in
+            stop: 4.517, // 38.000 hard stop → freeze
+            logo: 5.085, // 38.568 downbeat → logo lands
+            end: 6.517, // 40.000 frame end
+          };
+
+          var cam = $("f04-cam");
+          var tex = $("f04-tex");
+          var ripple = $("f04-ripple");
+          var g1 = $("f04-g1");
+          var ring = $("f04-g1-ring");
+          var flash = $("f04-g1-flash");
+          var bar = $("f04-g1-bar");
+          var titles = $("f04-titles");
+          var kick = $("f04-kicker");
+          var title = $("f04-title");
+          var ghostR = $("f04-title-r");
+          var ghostC = $("f04-title-c");
+          var g2 = $("f04-g2");
+          var date = $("f04-g2-date");
+          var tag = $("f04-g2-tag");
+          var coin = $("f04-g2-coin");
+          var logo = $("f04-logo");
+          var grain = $("f04-grain-tex");
+          var frames = [1, 2, 3, 4, 5, 6].map(function (n) {
+            return $("f04-pf-" + n);
+          });
+
+          // Seeded PRNG (mulberry32) — grain offsets only.
+          function mulberry32(a) {
+            return function () {
+              a |= 0;
+              a = (a + 0x6d2b79f5) | 0;
+              var t = Math.imul(a ^ (a >>> 15), 1 | a);
+              t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+              return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+          }
+
+          // ---- build-time rest transforms (no CSS transforms on anything GSAP touches) ----
+          var FRINGE = 6.144; // sketch .rgb: .32cqw
+          gsap.set(cam, { x: 0, y: 0, scale: 1, transformOrigin: "50% 50%" });
+          gsap.set(ripple, { scale: 1, transformOrigin: "1008px 1322.4px" });
+          gsap.set(ring, { scale: 0.25, transformOrigin: "50% 50%" });
+          gsap.set(bar, { transformOrigin: "50% 0%" });
+          gsap.set(ghostR, { x: -FRINGE });
+          gsap.set(ghostC, { x: FRINGE });
+          gsap.set(tag, { transformOrigin: "50% 50%" });
+          gsap.set(logo, { transformOrigin: "50% 50%" });
+          gsap.set(grain, { xPercent: 0, yPercent: 0 });
+
+          // sketch .pf:nth-child rest pose: rotateY + scale + origin
+          var RY = [42, 28, 12, -12, -28, -42];
+          var SC = [1.18, 1.05, 0.94, 0.94, 1.05, 1.18];
+          var TO = ["100% 100%", "100% 100%", "50% 50%", "50% 50%", "0% 100%", "0% 100%"];
+          frames.forEach(function (el, i) {
+            gsap.set(el, { rotationY: RY[i], scale: SC[i], transformOrigin: TO[i] });
+          });
+
+          var tl = gsap.timeline({ paused: true });
+
+          // ---- group windows ----
+          tl.set(g1, { autoAlpha: 1 }, 0);
+          tl.set(g2, { autoAlpha: 0 }, 0);
+          tl.set(g1, { autoAlpha: 0 }, T.g2);
+          tl.set(g2, { autoAlpha: 1 }, T.g2);
+
+          // =========================== g1 ===========================
+          // ㅣ vertical wipe (천지인 callback): the paper stroke is written top→bottom, then sweeps L→R.
+          // The reveal edge rides the bar's left edge: rightInset = 1968 − barX (tex box starts at −48px, 2016px wide).
+          tl.fromTo(bar, { x: 96, scaleY: 0 }, { scaleY: 1, duration: 0.11, ease: "power4.out" }, T.riser);
+          tl.set([tex, kick], { clipPath: "inset(0px 1872px 0px 0px)" }, T.riser);
+          tl.to(bar, { x: 1968, duration: 0.28, ease: "power2.in" }, T.sweep);
+          tl.to([tex, kick], { clipPath: "inset(0px 0px 0px 0px)", duration: 0.28, ease: "power2.in" }, T.sweep);
+          tl.set(bar, { autoAlpha: 0 }, T.sweep + 0.29);
+
+          // ground ripple drifts outward until the hard stop (freeze-hold at 38.0)
+          tl.fromTo(
+            ripple,
+            { scale: 1 },
+            { scale: 1.12, duration: T.stop - T.riser, ease: "none", immediateRender: false },
+            T.riser,
+          );
+
+          // braam-punch: 0ms hit on the snare, oversize → settle
+          tl.set(title, { autoAlpha: 1 }, T.slam);
+          tl.fromTo(title, { scale: 1.18 }, { scale: 1, duration: 0.22, ease: "power4.out" }, T.slam);
+
+          // haze flash on the ground (under the type) + one ring through the ripple ground
+          tl.set(flash, { opacity: 0.32 }, T.slam);
+          tl.to(flash, { opacity: 0, duration: 0.22, ease: "power2.out" }, T.slam);
+          tl.set(ring, { opacity: 0.5 }, T.slam);
+          tl.to(ring, { opacity: 0, scale: 1.15, duration: 1.1, ease: "power2.out" }, T.slam);
+
+          // screen-shake: one step per frame, decaying (index table, no randomness)
+          var SX = [24, -20, 16, -13, 10, -8, 6, -4, 3, -2];
+          var SY = [-14, 12, -10, 8, -6, 5, -4, 3, -2, 1];
+          SX.forEach(function (sx, i) {
+            tl.set(cam, { x: sx, y: SY[i] }, T.slam + i / 30);
+          });
+          tl.set(cam, { x: 0, y: 0 }, T.slam + SX.length / 30);
+
+          // slow camera push through the SURGE; stops dead at the hard stop
+          tl.fromTo(
+            cam,
+            { scale: 1 },
+            { scale: 1.025, duration: T.stop - T.slam, ease: "none", immediateRender: false },
+            T.slam,
+          );
+
+          // chromatic-split on the title: glitch on the slam, short ticks on later hits
+          tl.set(ghostR, { x: -30 }, T.slam);
+          tl.set(ghostC, { x: 30 }, T.slam);
+          tl.set(ghostR, { x: -10 }, T.slam + 0.067);
+          tl.set(ghostC, { x: 10 }, T.slam + 0.067);
+          tl.set(ghostR, { x: -22 }, T.slam + 0.133);
+          tl.set(ghostC, { x: 22 }, T.slam + 0.133);
+          tl.to(ghostR, { x: -FRINGE, duration: 0.3, ease: "power2.out" }, T.slam + 0.2);
+          tl.to(ghostC, { x: FRINGE, duration: 0.3, ease: "power2.out" }, T.slam + 0.2);
+          function rgbTick(t) {
+            tl.set(ghostR, { x: -18 }, t);
+            tl.set(ghostC, { x: 18 }, t);
+            tl.to(ghostR, { x: -FRINGE, duration: 0.14, ease: "power2.out" }, t + 0.05);
+            tl.to(ghostC, { x: FRINGE, duration: 0.14, ease: "power2.out" }, t + 0.05);
+          }
+
+          // covers rise from the bottom in perspective, in order, on two beats
+          frames.forEach(function (el, i) {
+            var at = (i < 3 ? T.row1 : T.row2) + (i % 3) * 0.06;
+            tl.fromTo(
+              el,
+              { y: 340, rotationX: 40 },
+              { y: 0, rotationX: 0, duration: 0.55, ease: "power4.out" },
+              at,
+            );
+          });
+          rgbTick(T.row1);
+          rgbTick(T.row2);
+
+          // =========================== g2 ===========================
+          // staggered-reveal: titles make room, date wipes in L→R, then the 예시 tag stamps
+          tl.fromTo(
+            titles,
+            { y: 0 },
+            { y: -42.24, duration: 0.24, ease: "power3.out", immediateRender: false },
+            T.g2,
+          );
+          tl.fromTo(
+            date,
+            { clipPath: "inset(0% 100% 0% 0%)" },
+            { clipPath: "inset(0% 0% 0% 0%)", duration: 0.22, ease: "power3.out" },
+            T.g2,
+          );
+          rgbTick(T.g2);
+          tl.set(tag, { autoAlpha: 0.75 }, T.tag);
+          tl.fromTo(tag, { scale: 1.3 }, { scale: 1, duration: 0.14, ease: "power3.out" }, T.tag);
+          rgbTick(T.beat);
+
+          // the coin (천 · the gold dot) rolls in L→R and settles beside the logo slot (roll without slip: 260px ÷ r 34.56px ≈ 431°)
+          tl.set(coin, { autoAlpha: 1 }, T.coin);
+          tl.fromTo(
+            coin,
+            { x: -260, rotation: -431 },
+            { x: 0, rotation: 0, duration: 0.5, ease: "power3.out" },
+            T.coin,
+          );
+          rgbTick(T.coin);
+
+          // grain steps at 15 fps until the hard stop, then holds still
+          var rnd = mulberry32(40418);
+          for (var k = 0; k / 15 <= T.stop; k++) {
+            tl.set(
+              grain,
+              {
+                xPercent: Math.round((rnd() * 30 - 15) * 10) / 10,
+                yPercent: Math.round((rnd() * 30 - 15) * 10) / 10,
+              },
+              k / 15,
+            );
+          }
+
+          // after the 38.0 hard stop: the logo lands on the 38.568 downbeat, then nothing moves
+          tl.set(logo, { autoAlpha: 1 }, T.logo);
+          tl.fromTo(logo, { scale: 1.18 }, { scale: 1, duration: 0.22, ease: "power3.out" }, T.logo);
+
+          // held frame through the audio fade; idempotent set so the timeline spans the full 6.517s
+          tl.set(g2, { autoAlpha: 1 }, T.end);
+
+          window.__timelines["04-finale"] = tl;
+          tl.seek(0);
+        })();
+      </script>
+    </template>
+  </body>
+</html>

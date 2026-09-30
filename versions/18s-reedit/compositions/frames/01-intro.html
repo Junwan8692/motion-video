@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <title>01-intro</title>
+    <!--
+      Frame 1 — 01-intro (track 0.000–3.181, frame-local = track seconds) — 18.47 s fast cut
+      g1 [0.000, 1.277)  ink ground · engraved palace ghost visible at t=0, wipes L→R 0.0–0.9 (mask-reveal +
+                         burin hairline + spotlight) · knots swing in 0.0–0.325, then sway on every grid beat ·
+                         gold dot falls 0.0→0.627 and becomes the coin on 0.627 (0 ms swap + flash) ·
+                         coin pulse 0.952
+      g2 [1.277, 3.181]  ㅡ bar L→R through the coin hole + the coin jumps to the right third (1.277) ·
+                         ㅣ bar drops (1.904) · "1446 → 2026" + "제580돌 / 한글날" slam in together
+                         (2.531, braam-punch) · haze sheen 2.856–3.156 (chrome-sweep) · hold to 3.181
+      Shared layers (ground, halftone, palace, knots, grain) persist across the 0 ms g1→g2 cut.
+    -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "Pretendard";
+          font-style: normal;
+          font-weight: 900;
+          font-display: block;
+          src: url("assets/fonts/pretendard/Pretendard-Black.woff2") format("woff2");
+        }
+        @font-face {
+          font-family: "Pretendard";
+          font-style: normal;
+          font-weight: 700;
+          font-display: block;
+          src: url("assets/fonts/pretendard/Pretendard-Bold.woff2") format("woff2");
+        }
+
+        #stage {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          background: #1b2566;
+          font-family: "Pretendard", sans-serif;
+        }
+        #stage div,
+        #stage span,
+        #stage img,
+        #stage svg {
+          box-sizing: border-box;
+        }
+
+        /* ---------- ground: ink + halftone (sketch .dots-l, 1cqw = 19.2px) ---------- */
+        #f01-bg {
+          position: absolute;
+          inset: 0;
+          background: #1b2566;
+        }
+        #f01-halftone {
+          position: absolute;
+          inset: -40px;
+          z-index: 1;
+          background-image: radial-gradient(
+            circle,
+            rgba(233, 229, 219, 0.09) 2.112px,
+            rgba(233, 229, 219, 0) 2.688px
+          );
+          background-size: 15.36px 15.36px;
+        }
+
+        /* ---------- engraved palace (sketch: left 15cqw, top 8cqw, width 70cqw) ---------- */
+        #f01-palace {
+          position: absolute;
+          left: 288px;
+          top: 153.6px;
+          width: 1344px;
+          height: 896px;
+          z-index: 2;
+          transform-origin: 50% 40%;
+        }
+        .f01-palace-art {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+        #f01-palace-ghost {
+          opacity: 0.2;
+        }
+        #f01-palace-spot {
+          position: absolute;
+          left: -450px;
+          top: -120px;
+          width: 900px;
+          height: 900px;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle,
+            rgba(240, 218, 124, 0.16) 0%,
+            rgba(240, 218, 124, 0.07) 36%,
+            rgba(240, 218, 124, 0) 68%
+          );
+        }
+        #f01-palace-hair {
+          position: absolute;
+          left: -1px;
+          top: 90px;
+          width: 2px;
+          height: 710px;
+          background: linear-gradient(
+            180deg,
+            rgba(240, 218, 124, 0) 0%,
+            rgba(240, 218, 124, 0.9) 18%,
+            rgba(240, 218, 124, 0.9) 82%,
+            rgba(240, 218, 124, 0) 100%
+          );
+          box-shadow: 0 0 10px rgba(240, 218, 124, 0.45);
+        }
+
+        /* ---------- knots (sketch: height 30cqw, top corners, pivot at the cord top) ---------- */
+        .f01-knot {
+          position: absolute;
+          top: 0;
+          width: 384px;
+          height: 576px;
+          display: block;
+          z-index: 3;
+          transform-origin: 50% 0%;
+        }
+        #f01-knot-l {
+          left: 0;
+        }
+        #f01-knot-r {
+          left: 1536px;
+        }
+
+        /* ---------- groups ---------- */
+        .f01-group {
+          position: absolute;
+          inset: 0;
+          z-index: 4;
+        }
+        .f01-core {
+          position: absolute;
+          width: 0;
+          height: 0;
+        }
+        .f01-core > * {
+          position: absolute;
+          display: block;
+        }
+
+        /* g1 — centre of the sketch coin (left 44cqw, top 15.5cqw, width 12cqw) */
+        #f01-g1-core {
+          left: 960px;
+          top: 412.8px;
+        }
+        #f01-g1-halo {
+          left: -280px;
+          top: -280px;
+          width: 560px;
+          height: 560px;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle,
+            rgba(240, 218, 124, 0.3) 0%,
+            rgba(240, 218, 124, 0.12) 32%,
+            rgba(240, 218, 124, 0) 68%
+          );
+          z-index: 1;
+        }
+        .f01-ring {
+          left: -260px;
+          top: -260px;
+          width: 520px;
+          height: 520px;
+          border-radius: 50%;
+          border: 1.5px solid rgba(240, 218, 124, 0.85);
+          z-index: 2;
+        }
+        #f01-g1-ring2 {
+          border-width: 1px;
+          border-color: rgba(233, 229, 219, 0.55);
+        }
+        #f01-g1-disc {
+          left: -106px;
+          top: -106px;
+          width: 212px;
+          height: 212px;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle at 36% 30%,
+            #e9e5db 0%,
+            #f0da7c 30%,
+            #f0da7c 60%,
+            #9f9574 100%
+          );
+          box-shadow: 0 0 40px rgba(240, 218, 124, 0.45);
+          z-index: 3;
+        }
+        #f01-g1-coin {
+          left: -115.2px;
+          top: -115.2px;
+          width: 230.4px;
+          height: 230.4px;
+          z-index: 4;
+        }
+        #f01-g1-dot {
+          left: -14px;
+          top: -14px;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle at 36% 30%,
+            #e9e5db 0%,
+            #f0da7c 34%,
+            #f0da7c 62%,
+            #9f9574 100%
+          );
+          box-shadow: 0 0 16px rgba(240, 218, 124, 0.65);
+          z-index: 5;
+        }
+        #f01-g1-bloom {
+          left: -300px;
+          top: -300px;
+          width: 600px;
+          height: 600px;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle,
+            rgba(233, 229, 219, 0.95) 0%,
+            rgba(240, 218, 124, 0.7) 12%,
+            rgba(240, 218, 124, 0.22) 34%,
+            rgba(240, 218, 124, 0) 66%
+          );
+          z-index: 6;
+        }
+        #f01-g1-streak {
+          left: -800px;
+          top: -2px;
+          width: 1600px;
+          height: 4px;
+          border-radius: 2px;
+          background: linear-gradient(
+            90deg,
+            rgba(240, 218, 124, 0) 0%,
+            rgba(240, 218, 124, 0.85) 36%,
+            #e9e5db 50%,
+            rgba(240, 218, 124, 0.85) 64%,
+            rgba(240, 218, 124, 0) 100%
+          );
+          box-shadow: 0 0 14px rgba(240, 218, 124, 0.5);
+          z-index: 7;
+        }
+
+        /* g2 — bars cross at the sketch coin (left 68.95cqw, top 18.45cqw, width 9.6cqw) */
+        .f01-bar {
+          position: absolute;
+          display: block;
+          background: #e9e5db;
+          z-index: 2;
+        }
+        #f01-g2-barH {
+          left: 0;
+          top: 433.92px;
+          width: 100%;
+          height: 24.96px;
+          transform-origin: 0% 50%;
+        }
+        #f01-g2-barV {
+          left: 1403.52px;
+          top: 0;
+          width: 24.96px;
+          height: 100%;
+          transform-origin: 50% 0%;
+        }
+        #f01-g2-core {
+          left: 1416px;
+          top: 446.4px;
+        }
+        #f01-g2-halo {
+          left: -230px;
+          top: -230px;
+          width: 460px;
+          height: 460px;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle,
+            rgba(240, 218, 124, 0.3) 0%,
+            rgba(240, 218, 124, 0.12) 32%,
+            rgba(240, 218, 124, 0) 68%
+          );
+          z-index: 1;
+        }
+        #f01-g2-coinwrap {
+          left: -92.16px;
+          top: -92.16px;
+          width: 184.32px;
+          height: 184.32px;
+          z-index: 3;
+        }
+        #f01-g2-coin {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+        #f01-g2-bloom {
+          left: -280px;
+          top: -280px;
+          width: 560px;
+          height: 560px;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle,
+            rgba(233, 229, 219, 0.95) 0%,
+            rgba(240, 218, 124, 0.7) 12%,
+            rgba(240, 218, 124, 0.22) 34%,
+            rgba(240, 218, 124, 0) 66%
+          );
+          z-index: 4;
+        }
+
+        /* copy — always above the knots (type on top) */
+        #f01-g2-years {
+          position: absolute;
+          left: 115.2px;
+          top: 529.92px;
+          display: flex;
+          align-items: center;
+          gap: 0.3em;
+          font-size: 65.28px;
+          line-height: 0.86;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+          color: #f0da7c;
+          white-space: nowrap;
+          z-index: 5;
+          transform-origin: 0% 100%; /* slam grows upward, away from the title */
+        }
+        .f01-ynum {
+          display: block;
+        }
+        .f01-arrow {
+          display: block;
+          width: 1.38em;
+          height: 0.62em;
+          transform-origin: 0% 50%;
+        }
+        .f01-arrow path {
+          fill: none;
+          stroke: #f0da7c;
+          stroke-width: 6;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+        .f01-title {
+          position: absolute;
+          left: 103.68px;
+          top: 625.92px;
+          font-size: 207.36px;
+          line-height: 0.86;
+          font-weight: 900;
+          letter-spacing: -0.05em;
+          color: #e9e5db;
+          white-space: nowrap;
+          font-kerning: none;
+          z-index: 5;
+        }
+        #f01-g2-title {
+          transform-origin: 0% 0%; /* slam grows downward, away from the years line */
+        }
+        .f01-tline {
+          display: block;
+          width: 900px;
+        }
+        .f01-ch {
+          display: inline-block;
+        }
+        /* chrome-sweep copy: shown only during the sweep window; computed color stays paper */
+        #f01-g2-sheen {
+          z-index: 6;
+        }
+        #f01-g2-sheen .f01-tline {
+          color: #e9e5db;
+          background-image: linear-gradient(
+            100deg,
+            #e9e5db 0%,
+            #e9e5db 41%,
+            #f0da7c 47%,
+            #f0da7c 53%,
+            #e9e5db 59%,
+            #e9e5db 100%
+          );
+          background-size: 250% 100%;
+          background-position: 100% 0%;
+          background-repeat: no-repeat;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        /* ---------- grain (registry grain-overlay, jitter re-driven by the paused timeline) ---------- */
+        #f01-grain {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          pointer-events: none;
+          z-index: 10;
+        }
+        #f01-grain-tex {
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+          background-size: 256px 256px;
+          background-repeat: repeat;
+          opacity: 0.12;
+        }
+      </style>
+
+      <div data-hf-id="hf-znt9" id="stage" data-composition-id="01-intro" data-width="1920" data-height="1080" data-duration="3.181">
+        <div data-hf-id="hf-906g" id="f01-bg"></div>
+        <div data-hf-id="hf-noco" id="f01-halftone" data-layout-ignore="" aria-hidden="true"></div>
+
+        <div data-hf-id="hf-09g7" id="f01-palace" data-layout-ignore="" aria-hidden="true">
+          <div data-hf-id="hf-3wt1" id="f01-palace-spot" data-layout-ignore=""></div>
+          <img data-hf-id="hf-uchc" id="f01-palace-ghost" class="f01-palace-art" src="assets/props/tinted/palace-paper.png" alt="" data-layout-ignore="">
+          <img data-hf-id="hf-hxrk" id="f01-palace-img" class="f01-palace-art" src="assets/props/tinted/palace-paper.png" alt="" data-layout-ignore="">
+          <div data-hf-id="hf-dz6d" id="f01-palace-hair" data-layout-ignore=""></div>
+        </div>
+
+        <img data-hf-id="hf-8j27" id="f01-knot-l" class="f01-knot" src="assets/props/knot.png" alt="" data-layout-ignore="">
+        <img data-hf-id="hf-8b61" id="f01-knot-r" class="f01-knot" src="assets/props/knot.png" alt="" data-layout-ignore="">
+
+        <!-- g1 — the gold dot becomes the coin -->
+        <div data-hf-id="hf-kt9b" id="f01-g1" class="f01-group">
+          <div data-hf-id="hf-ikxt" id="f01-g1-core" class="f01-core">
+            <div data-hf-id="hf-zbdq" id="f01-g1-halo" data-layout-ignore="" aria-hidden="true"></div>
+            <div data-hf-id="hf-nr8b" id="f01-g1-ring" class="f01-ring" data-layout-ignore="" aria-hidden="true"></div>
+            <div data-hf-id="hf-dnqj" id="f01-g1-ring2" class="f01-ring" data-layout-ignore="" aria-hidden="true"></div>
+            <div data-hf-id="hf-m578" id="f01-g1-disc" aria-hidden="true"></div>
+            <img data-hf-id="hf-hc17" id="f01-g1-coin" src="assets/props/coin.png" alt="">
+            <div data-hf-id="hf-huq1" id="f01-g1-dot" data-layout-ignore="" aria-hidden="true"></div>
+            <div data-hf-id="hf-zqu5" id="f01-g1-bloom" data-layout-ignore="" aria-hidden="true"></div>
+            <div data-hf-id="hf-av82" id="f01-g1-streak" data-layout-ignore="" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <!-- g2 — 천지인 strokes lock around the coin, then the title builds -->
+        <div data-hf-id="hf-c5dg" id="f01-g2" class="f01-group">
+          <div data-hf-id="hf-hens" id="f01-g2-barH" class="f01-bar" data-layout-ignore="" aria-hidden="true"></div>
+          <div data-hf-id="hf-x01a" id="f01-g2-barV" class="f01-bar" data-layout-ignore="" aria-hidden="true"></div>
+          <div data-hf-id="hf-3n24" id="f01-g2-core" class="f01-core">
+            <div data-hf-id="hf-tsd3" id="f01-g2-halo" data-layout-ignore="" aria-hidden="true"></div>
+            <div data-hf-id="hf-h8gk" id="f01-g2-coinwrap"><img data-hf-id="hf-e50a" id="f01-g2-coin" src="assets/props/coin.png" alt=""></div>
+            <div data-hf-id="hf-wzqy" id="f01-g2-bloom" data-layout-ignore="" aria-hidden="true"></div>
+          </div>
+          <div data-hf-id="hf-8imj" id="f01-g2-years" role="group" aria-label="1446 → 2026">
+            <span data-hf-id="hf-hqjd" id="f01-g2-y1" class="f01-ynum">1446</span>
+            <svg data-hf-id="hf-nuog" id="f01-g2-arrow" class="f01-arrow" viewBox="0 0 90 40" aria-hidden="true">
+              <path data-hf-id="hf-8ab4" d="M5 20 H82" />
+              <path data-hf-id="hf-3nzh" d="M66 6 L83 20 L66 34" />
+            </svg>
+            <span data-hf-id="hf-l81f" id="f01-g2-y2" class="f01-ynum">2026</span>
+          </div>
+          <div data-hf-id="hf-w40i" id="f01-g2-title" class="f01-title">
+            <div data-hf-id="hf-brr6" class="f01-tline"><span data-hf-id="hf-htrk" class="f01-ch">제</span><span data-hf-id="hf-ra7v" class="f01-ch">5</span><span data-hf-id="hf-t9r0" class="f01-ch">8</span><span data-hf-id="hf-q3as" class="f01-ch">0</span><span data-hf-id="hf-ernk" class="f01-ch">돌</span></div>
+            <div data-hf-id="hf-8ofa" class="f01-tline"><span data-hf-id="hf-ynzm" class="f01-ch" data-layout-allow-overlap="">한</span><span data-hf-id="hf-jv3i" class="f01-ch" data-layout-allow-overlap="">글</span><span data-hf-id="hf-4kr2" class="f01-ch" data-layout-allow-overlap="">날</span></div>
+          </div>
+          <div data-hf-id="hf-ax5c" id="f01-g2-sheen" class="f01-title" aria-hidden="true">
+            <div data-hf-id="hf-b37l" class="f01-tline" data-layout-allow-overlap="">제580돌</div>
+            <div data-hf-id="hf-zzfc" class="f01-tline" data-layout-allow-overlap="">한글날</div>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-4wo0" id="f01-grain" data-layout-ignore="" aria-hidden="true">
+          <div data-hf-id="hf-hep1" id="f01-grain-tex" data-layout-ignore=""></div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          var tl = gsap.timeline({ paused: true });
+          var $ = function (id) {
+            return document.getElementById(id);
+          };
+
+          // Frame-local anchors (frame starts at track 0.000, so local = track seconds).
+          // audiomap grid beats in this span: 0.627 0.952 1.277* 1.579 1.904 2.206 2.531* 2.856 3.181 (* downbeat)
+          var T = {
+            wipe: 0.9, // palace wipe 0.0 → 0.9
+            coin: 0.627, // the gold dot lands and becomes the coin
+            pulse: 0.952, // coin pulse
+            cut: 1.277, // g1 → g2 (0 ms): ㅡ bar L→R, the coin jumps to the right third
+            barV: 1.904, // ㅣ bar drops
+            slam: 2.531, // "1446 → 2026" + "제580돌 / 한글날" slam in together
+            sheen: 2.856, // haze sheen (≤ 0.3 s)
+            end: 3.181, // hold to the cut
+          };
+          // knot sway turning points: swing-in lands on 0.325, then every grid beat to the end
+          var SWAY = [0, 0.325, 0.627, 0.952, 1.277, 1.579, 1.904, 2.206, 2.531, 2.856, 3.181];
+
+          var halftone = $("f01-halftone");
+          var palace = $("f01-palace");
+          var palaceImg = $("f01-palace-img");
+          var hair = $("f01-palace-hair");
+          var spot = $("f01-palace-spot");
+          var knotL = $("f01-knot-l");
+          var knotR = $("f01-knot-r");
+          var g1 = $("f01-g1");
+          var halo1 = $("f01-g1-halo");
+          var ring1 = $("f01-g1-ring");
+          var ring2 = $("f01-g1-ring2");
+          var disc = $("f01-g1-disc");
+          var coin1 = $("f01-g1-coin");
+          var dot = $("f01-g1-dot");
+          var bloom1 = $("f01-g1-bloom");
+          var streak1 = $("f01-g1-streak");
+          var g2 = $("f01-g2");
+          var barH = $("f01-g2-barH");
+          var barV = $("f01-g2-barV");
+          var halo2 = $("f01-g2-halo");
+          var coinWrap2 = $("f01-g2-coinwrap");
+          var coin2 = $("f01-g2-coin");
+          var bloom2 = $("f01-g2-bloom");
+          var years = $("f01-g2-years");
+          var y1 = $("f01-g2-y1");
+          var arrow = $("f01-g2-arrow");
+          var y2 = $("f01-g2-y2");
+          var title = $("f01-g2-title");
+          var chars = title.querySelectorAll(".f01-ch");
+          var sheen = $("f01-g2-sheen");
+          var sheenLines = sheen.querySelectorAll(".f01-tline");
+          var grainTex = $("f01-grain-tex");
+
+          // ---------- t = 0 states (outside the timeline; tweens below record from these) ----------
+          gsap.set(g1, { autoAlpha: 1 });
+          gsap.set(g2, { autoAlpha: 0 });
+          gsap.set(halftone, { x: 0, y: 0 });
+          gsap.set(palace, { opacity: 0.85, scale: 1 }); // ghost layer (0.2) makes the palace visible from frame 1
+          gsap.set(palaceImg, { clipPath: "inset(0% 100% 0% 0%)" });
+          gsap.set(hair, { x: 0, autoAlpha: 0 });
+          gsap.set(spot, { x: 0, autoAlpha: 0 });
+          gsap.set(knotL, { rotation: 100, autoAlpha: 1 }); // beyond the top-left corner, swinging from t = 0
+          gsap.set(knotR, { rotation: -100, autoAlpha: 1 });
+          gsap.set(halo1, { autoAlpha: 0, scale: 0.6 });
+          gsap.set([ring1, ring2], { autoAlpha: 0, scale: 0.06 });
+          gsap.set(disc, { autoAlpha: 0, scale: 0.2 });
+          gsap.set(coin1, { autoAlpha: 0, scale: 0.55, rotation: -35 });
+          gsap.set(dot, { autoAlpha: 1, y: -470, scaleX: 0.78, scaleY: 1.5 }); // just above the canvas, falling
+          gsap.set(bloom1, { autoAlpha: 0, scale: 0.15 });
+          gsap.set(streak1, { autoAlpha: 0, scaleX: 0 });
+          gsap.set(barH, { scaleX: 0 });
+          gsap.set(barV, { scaleY: 0 });
+          gsap.set(halo2, { autoAlpha: 0.42 });
+          gsap.set(coinWrap2, { x: -60, y: 0, rotation: 0, scale: 1 }); // lands from the left on the cut
+          gsap.set(coin2, { scale: 1.15 });
+          gsap.set(bloom2, { autoAlpha: 0, scale: 0.15 });
+          gsap.set(years, { scale: 1.2 });
+          gsap.set([y1, y2], { autoAlpha: 0, y: 0 });
+          gsap.set(arrow, { autoAlpha: 0, scaleX: 0 });
+          gsap.set(title, { autoAlpha: 1, scale: 1.2 });
+          gsap.set(chars, { autoAlpha: 0, y: 0 });
+          gsap.set(sheen, { autoAlpha: 0 });
+          gsap.set(grainTex, { xPercent: 0, yPercent: 0 });
+
+          // ---------- ground: halftone drift + grain jitter, alive from frame 0 ----------
+          tl.to(halftone, { x: -26, y: -15, duration: T.end, ease: "none" }, 0);
+          // grain-overlay keyframes (0.5s cycle, steps(1)) as discrete sets every 0.05s
+          var GX = [0, -5, -10, 5, -5, -10, 15, 0, -15, 10];
+          var GY = [0, -5, 5, -10, 15, 5, 0, 10, 0, 5];
+          for (var i = 1; i * 0.05 < T.end; i++) {
+            tl.set(grainTex, { xPercent: GX[i % 10], yPercent: GY[i % 10] }, +(i * 0.05).toFixed(3));
+          }
+
+          // ---------- palace: ghost at t = 0 → clip-path wipe L→R over 0.0–0.9 with burin hairline + spotlight ----------
+          tl.to(palaceImg, { clipPath: "inset(0% 0% 0% 0%)", duration: T.wipe, ease: "power1.inOut" }, 0);
+          tl.to(hair, { x: 1344, duration: T.wipe, ease: "power1.inOut" }, 0);
+          tl.to(hair, { autoAlpha: 0.8, duration: 0.1, ease: "power1.out" }, 0);
+          tl.to(hair, { autoAlpha: 0, duration: 0.15, ease: "power1.in" }, 0.75);
+          tl.to(spot, { x: 1344, duration: T.wipe, ease: "power1.inOut" }, 0);
+          tl.to(spot, { autoAlpha: 1, duration: 0.15, ease: "sine.out" }, 0);
+          tl.to(spot, { autoAlpha: 0, duration: 0.2, ease: "sine.in" }, 0.8);
+          // beat-stepped push-in on the hits (replaces the old slow zoom)
+          [[T.coin, 1.012], [T.cut, 1.024], [T.barV, 1.036], [T.slam, 1.048]].forEach(function (s) {
+            tl.to(palace, { scale: s[1], duration: 0.12, ease: "power3.out" }, s[0]);
+          });
+          // the cut drops the palace to 0.28 so the copy reads over it (0 ms, no recede)
+          tl.set(palace, { opacity: 0.28 }, T.cut);
+
+          // ---------- knots: swing in from beyond the top corners (0.0–0.325), then sway on every grid beat ----------
+          // amplitudes decay to ~2° by the 2.531 slam so the left tassel barely moves behind the copy
+          function sway(el, amps) {
+            for (var k = 0; k < amps.length; k++) {
+              tl.to(
+                el,
+                { rotation: amps[k], duration: +(SWAY[k + 1] - SWAY[k]).toFixed(3), ease: "sine.inOut" },
+                SWAY[k],
+              );
+            }
+          }
+          sway(knotL, [-22, 13, -8, 6, -4.5, 3.5, -3, 2.5, -2, 1.5]);
+          sway(knotR, [20, -12, 7, -5.5, 4, -3.2, 2.8, -2.2, 1.8, -1.4]);
+
+          // ---------- g1: the gold dot (·, heaven) falls 0.0 → 0.627 ----------
+          tl.to(dot, { y: 0, duration: T.coin, ease: "power2.in" }, 0);
+
+          // ---------- 0.627 hit: the dot becomes the coin (0 ms swap + gold flash) ----------
+          tl.set(dot, { autoAlpha: 0 }, T.coin);
+          tl.set(disc, { autoAlpha: 1 }, T.coin);
+          tl.to(disc, { scale: 1.08, duration: 0.14, ease: "expo.out" }, T.coin);
+          tl.to(disc, { autoAlpha: 0, duration: 0.12, ease: "power1.in" }, T.coin + 0.1);
+          tl.set(coin1, { autoAlpha: 1 }, T.coin);
+          tl.to(coin1, { scale: 1, rotation: 0, duration: 0.3, ease: "back.out(1.6)" }, T.coin);
+          tl.set(bloom1, { autoAlpha: 1 }, T.coin);
+          tl.to(bloom1, { scale: 1, duration: 0.3, ease: "power2.out" }, T.coin);
+          tl.to(bloom1, { autoAlpha: 0, duration: 0.24, ease: "power1.in" }, T.coin + 0.06);
+          tl.set(streak1, { autoAlpha: 1 }, T.coin);
+          tl.to(streak1, { scaleX: 1, duration: 0.2, ease: "expo.out" }, T.coin);
+          tl.to(streak1, { autoAlpha: 0, duration: 0.2, ease: "power2.in" }, T.coin + 0.1);
+          tl.set(ring1, { autoAlpha: 0.8 }, T.coin);
+          tl.to(ring1, { scale: 1, duration: 0.3, ease: "power2.out" }, T.coin);
+          tl.to(ring1, { autoAlpha: 0, duration: 0.22, ease: "power1.in" }, T.coin + 0.08);
+          tl.to(halo1, { autoAlpha: 0.55, scale: 1, duration: 0.2, ease: "power2.out" }, T.coin);
+
+          // ---------- 0.952 coin pulse ----------
+          tl.set(coin1, { scale: 1.08 }, T.pulse);
+          tl.to(coin1, { scale: 1, duration: 0.22, ease: "power2.out" }, T.pulse);
+          tl.set(halo1, { autoAlpha: 0.9, scale: 1.1 }, T.pulse);
+          tl.to(halo1, { autoAlpha: 0.5, scale: 1, duration: 0.26, ease: "sine.out" }, T.pulse);
+          tl.set(ring2, { autoAlpha: 0.55 }, T.pulse);
+          tl.to(ring2, { scale: 0.8, duration: 0.28, ease: "power2.out" }, T.pulse);
+          tl.to(ring2, { autoAlpha: 0, duration: 0.2, ease: "power1.in" }, T.pulse + 0.06);
+
+          // ---------- 1.277 cut → g2 (0 ms swap; shared layers keep moving) ----------
+          tl.set(g1, { autoAlpha: 0 }, T.cut);
+          tl.set(g2, { autoAlpha: 1 }, T.cut);
+          // ㅡ (earth): paper bar fills left → right, fast, threading the coin's square hole
+          tl.to(barH, { scaleX: 1, duration: 0.22, ease: "expo.out" }, T.cut);
+          // the coin has jumped to the right third: it lands with a short left → right follow-through
+          tl.to(coinWrap2, { x: 0, duration: 0.2, ease: "power3.out" }, T.cut);
+          tl.to(coin2, { scale: 1, duration: 0.24, ease: "power3.out" }, T.cut);
+          // the bar tip reaches the hole ~0.04 s in → the coin kicks
+          tl.to(coinWrap2, { rotation: 8, duration: 0.04, ease: "power2.out" }, 1.319);
+          tl.to(coinWrap2, { rotation: 0, duration: 0.3, ease: "elastic.out(1, 0.45)" }, 1.359);
+          // the coin keeps time on the in-between grid beats
+          [1.579, 2.206].forEach(function (b) {
+            tl.set(coin2, { scale: 1.06 }, b);
+            tl.to(coin2, { scale: 1, duration: 0.2, ease: "power2.out" }, b);
+          });
+
+          // ---------- 1.904 ㅣ (human): paper bar drops top → bottom through the coin ----------
+          tl.to(barV, { scaleY: 1, duration: 0.2, ease: "expo.out" }, T.barV);
+          tl.to(coinWrap2, { y: 7, rotation: -6, duration: 0.04, ease: "power2.out" }, 1.919);
+          tl.to(coinWrap2, { y: 0, rotation: 0, duration: 0.3, ease: "elastic.out(1, 0.45)" }, 1.959);
+
+          // ---------- 2.531 braam-punch: "1446 → 2026" + "제580돌 / 한글날" slam in together (0 ms) ----------
+          // both blocks scale 1.2 → 1 away from the gap between them (years from its bottom, title from its top)
+          tl.set([y1, y2, arrow], { autoAlpha: 1 }, T.slam);
+          tl.set(chars, { autoAlpha: 1 }, T.slam);
+          tl.to([years, title], { scale: 1, duration: 0.16, ease: "expo.out" }, T.slam);
+          tl.to(arrow, { scaleX: 1, duration: 0.14, ease: "power3.out" }, T.slam);
+          // the impact answers on the coin and both strokes
+          tl.set(coin2, { scale: 1.12 }, T.slam);
+          tl.to(coin2, { scale: 1, duration: 0.24, ease: "power2.out" }, T.slam);
+          tl.set(bloom2, { autoAlpha: 1 }, T.slam);
+          tl.to(bloom2, { scale: 1, duration: 0.3, ease: "power2.out" }, T.slam);
+          tl.to(bloom2, { autoAlpha: 0, duration: 0.24, ease: "power1.in" }, T.slam + 0.06);
+          tl.set(halo2, { autoAlpha: 1 }, T.slam);
+          tl.to(halo2, { autoAlpha: 0.6, duration: 0.3, ease: "sine.out" }, T.slam);
+          tl.set([barH, barV], { backgroundColor: "#F0DA7C" }, T.slam);
+          tl.to([barH, barV], { backgroundColor: "#E9E5DB", duration: 0.28, ease: "power1.out" }, T.slam + 0.04);
+
+          // ---------- 2.856 haze sheen across the title (0.3 s), then hold to the cut ----------
+          var SHEEN_OUT = 3.156; // 2.856 + 0.26 + 1 × 0.04 stagger: band has left the text; solid-paper title returns
+          tl.set(title, { autoAlpha: 0 }, T.sheen);
+          tl.set(sheen, { autoAlpha: 1 }, T.sheen);
+          tl.to(sheenLines, { backgroundPosition: "0% 0%", duration: 0.26, ease: "power2.inOut", stagger: 0.04 }, T.sheen);
+          tl.set(sheen, { autoAlpha: 0 }, SHEEN_OUT);
+          tl.set(title, { autoAlpha: 1 }, SHEEN_OUT);
+
+          // pin: the timeline ends exactly at the frame span (every tween above ends ≤ 3.181)
+          tl.set(grainTex, { xPercent: GX[4], yPercent: GY[4] }, T.end);
+
+          window.__timelines = window.__timelines || {};
+          window.__timelines["01-intro"] = tl;
+          tl.seek(0);
+        })();
+      </script>
+    </template>
+  </body>
+</html>
